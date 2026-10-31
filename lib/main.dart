@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
 
-import 'screens/home_screen.dart';
+import 'core/constants/app_strings.dart';
+import 'core/theme/app_theme.dart';
+import 'screens/splash_screen.dart';
 
 void main() {
-  runApp(const MiApp());
+  runApp(const NexoShopApp());
 }
 
-class MiApp extends StatelessWidget {
-  const MiApp({super.key});
+class NexoShopApp extends StatelessWidget {
+  const NexoShopApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Mi Catalogo',
+      title: AppStrings.appName,
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-      ),
-      home: const HomeScreen(),
+      theme: AppTheme.light,
+      home: const SplashScreen(),
     );
   }
 }

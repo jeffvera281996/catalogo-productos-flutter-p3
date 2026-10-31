@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../core/theme/app_colors.dart';
 import '../models/producto.dart';
 
-// Tarjeta que muestra un producto en la lista
+// Tarjeta de producto con el estilo NexoShop
 class ProductoCard extends StatelessWidget {
   final Producto producto;
   final VoidCallback alPresionar;
@@ -16,47 +17,46 @@ class ProductoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.all(10),
-      child: Padding(
-        padding: const EdgeInsets.all(10),
-        child: Row(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                producto.imagen,
-                width: 80,
-                height: 80,
-                fit: BoxFit.cover,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: alPresionar,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.network(
+                  producto.imagen,
+                  width: 84,
+                  height: 84,
+                  fit: BoxFit.cover,
+                ),
               ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    producto.nombre,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      producto.nombre,
+                      style: Theme.of(context).textTheme.titleMedium,
                     ),
-                  ),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.attach_money,
-                        size: 16,
-                        color: Colors.green,
+                    const SizedBox(height: 4),
+                    Text(
+                      '\$${producto.precio.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
                       ),
-                      Text('${producto.precio}'),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-            ElevatedButton(onPressed: alPresionar, child: const Text('Ver')),
-          ],
+              const Icon(Icons.chevron_right, color: AppColors.accent),
+            ],
+          ),
         ),
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/theme/app_colors.dart';
 import '../models/producto.dart';
 
 // Pantalla 2: muestra el detalle del producto y un formulario
@@ -49,19 +50,20 @@ class _DetailScreenState extends State<DetailScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.producto.nombre),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(15),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Image.network(
-              widget.producto.imagen,
-              width: double.infinity,
-              height: 200,
-              fit: BoxFit.cover,
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Image.network(
+                widget.producto.imagen,
+                width: double.infinity,
+                height: 220,
+                fit: BoxFit.cover,
+              ),
             ),
             const SizedBox(height: 10),
             Text(
@@ -70,7 +72,11 @@ class _DetailScreenState extends State<DetailScreen> {
             ),
             Text(
               'Precio: \$${widget.producto.precio}',
-              style: const TextStyle(fontSize: 18, color: Colors.green),
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: AppColors.primary,
+              ),
             ),
             const SizedBox(height: 10),
             Text(widget.producto.descripcion),
@@ -82,30 +88,30 @@ class _DetailScreenState extends State<DetailScreen> {
             const SizedBox(height: 10),
             TextField(
               controller: nombreController,
-              decoration: const InputDecoration(
-                labelText: 'Tu nombre',
-                border: OutlineInputBorder(),
-              ),
+              decoration: const InputDecoration(labelText: 'Tu nombre'),
             ),
             const SizedBox(height: 10),
             TextField(
               controller: cantidadController,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Cantidad',
-                border: OutlineInputBorder(),
-              ),
+              decoration: const InputDecoration(labelText: 'Cantidad'),
             ),
             const SizedBox(height: 15),
-            ElevatedButton(
-              onPressed: enviarPedido,
-              child: const Text('Enviar pedido'),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: enviarPedido,
+                child: const Text('Enviar pedido'),
+              ),
             ),
             const SizedBox(height: 10),
-            OutlinedButton(
-              // Regresar a la Pantalla 1
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Volver al catalogo'),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                // Regresar a la Pantalla 1
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Volver al catalogo'),
+              ),
             ),
           ],
         ),
