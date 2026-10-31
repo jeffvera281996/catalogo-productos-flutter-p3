@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.catalogo.catalogo_app"
+    namespace = "ec.nexoshop.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -15,8 +15,8 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.catalogo.catalogo_app"
+        // Identificador unico de la app tras el rebranding (antes: com.catalogo.catalogo_app)
+        applicationId = "ec.nexoshop.app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

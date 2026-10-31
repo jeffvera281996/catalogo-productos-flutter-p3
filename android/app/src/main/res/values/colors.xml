@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Paleta nativa NexoShop (debe coincidir con lib/core/theme/app_colors.dart) -->
+<resources>
+    <color name="nexo_primary">#4A2FBD</color>
+    <color name="nexo_primary_dark">#2A1B6E</color>
+    <color name="nexo_accent">#FF6B4A</color>
+    <color name="ic_launcher_background">#4A2FBD</color>
+    <color name="splash_background">#4A2FBD</color>
+</resources>

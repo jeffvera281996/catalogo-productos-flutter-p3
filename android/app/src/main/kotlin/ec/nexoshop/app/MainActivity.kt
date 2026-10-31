@@ -1,4 +1,4 @@
-package com.catalogo.catalogo_app
+package ec.nexoshop.app
 
 import io.flutter.embedding.android.FlutterActivity
 
