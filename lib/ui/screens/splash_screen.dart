@@ -5,6 +5,7 @@ import '../../app.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../providers/catalogo_provider.dart';
+import '../../services/notification_service.dart';
 
 /// Splash de Flutter: continua visualmente el splash nativo (mismo color y
 /// logo) mientras se inicializan los datos de la app.
@@ -31,13 +32,27 @@ class _SplashScreenState extends State<SplashScreen>
 
   Future<void> _arrancar() async {
     final catalogo = context.read<CatalogoProvider>();
+    final notificaciones = context.read<NotificationService>();
+    final navegador = Navigator.of(context);
+
     // La carga y la animacion minima corren en paralelo.
     await Future.wait([
       catalogo.cargar(),
       Future<void>.delayed(const Duration(milliseconds: 1400)),
     ]);
     if (!mounted) return;
-    Navigator.of(context).pushReplacementNamed(Rutas.home);
+
+    // Permiso de notificaciones (Android 13+ / iOS). Si se niega, la app
+    // funciona igual: solo no mostrara avisos.
+    await notificaciones.solicitarPermiso();
+    final payload = await notificaciones.payloadDeArranque();
+    if (!mounted) return;
+
+    navegador.pushReplacementNamed(Rutas.home);
+    // App abierta en frio desde una notificacion -> ir a "Mis pedidos".
+    if (payload == NotificationService.payloadPedidos) {
+      navegador.pushNamed(Rutas.pedidos);
+    }
   }
 
   @override
