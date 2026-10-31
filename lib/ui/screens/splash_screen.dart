@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import '../core/constants/app_strings.dart';
-import '../core/theme/app_colors.dart';
-import 'home_screen.dart';
+import '../../app.dart';
+import '../../core/constants/app_strings.dart';
+import '../../core/theme/app_colors.dart';
+import '../../providers/catalogo_provider.dart';
 
 /// Splash de Flutter: continua visualmente el splash nativo (mismo color y
-/// logo) y anima la entrada de la marca antes de mostrar el catalogo.
+/// logo) mientras se inicializan los datos de la app.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -23,14 +25,19 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(milliseconds: 1600), _irAlCatalogo);
+    // Se espera al primer frame para poder leer los providers con seguridad.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _arrancar());
   }
 
-  void _irAlCatalogo() {
+  Future<void> _arrancar() async {
+    final catalogo = context.read<CatalogoProvider>();
+    // La carga y la animacion minima corren en paralelo.
+    await Future.wait([
+      catalogo.cargar(),
+      Future<void>.delayed(const Duration(milliseconds: 1400)),
+    ]);
     if (!mounted) return;
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const HomeScreen()),
-    );
+    Navigator.of(context).pushReplacementNamed(Rutas.home);
   }
 
   @override
@@ -68,6 +75,15 @@ class _SplashScreenState extends State<SplashScreen>
                 Text(
                   AppStrings.slogan,
                   style: TextStyle(color: Colors.white.withValues(alpha: 0.8)),
+                ),
+                const SizedBox(height: 32),
+                const SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    color: Colors.white,
+                  ),
                 ),
               ],
             ),

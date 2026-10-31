@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../core/theme/app_colors.dart';
-import '../models/producto.dart';
+import '../../core/theme/app_colors.dart';
+import '../../data/models/producto.dart';
+import 'producto_imagen.dart';
 
 // Tarjeta de producto con el estilo NexoShop
 class ProductoCard extends StatelessWidget {
@@ -24,15 +25,7 @@ class ProductoCard extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           child: Row(
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.network(
-                  producto.imagen,
-                  width: 84,
-                  height: 84,
-                  fit: BoxFit.cover,
-                ),
-              ),
+              ProductoImagen(url: producto.imagen, width: 84, height: 84),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
@@ -40,9 +33,19 @@ class ProductoCard extends StatelessWidget {
                   children: [
                     Text(
                       producto.nombre,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
+                    Text(
+                      producto.categoria,
+                      style: const TextStyle(
+                        color: AppColors.muted,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
                     Text(
                       '\$${producto.precio.toStringAsFixed(2)}',
                       style: const TextStyle(
