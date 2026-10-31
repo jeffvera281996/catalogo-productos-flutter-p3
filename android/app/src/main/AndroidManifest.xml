@@ -1,4 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Red: catalogo remoto y envio de pedidos -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:label="NexoShop"
         android:name="${applicationName}"

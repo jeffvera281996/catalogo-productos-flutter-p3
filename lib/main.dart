@@ -1,23 +1,40 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import 'core/constants/app_strings.dart';
-import 'core/theme/app_theme.dart';
-import 'screens/splash_screen.dart';
+import 'app.dart';
+import 'data/datasources/api_client.dart';
+import 'data/datasources/local_datasource.dart';
+import 'data/datasources/remote_datasource.dart';
+import 'data/repositories/pedido_repository.dart';
+import 'data/repositories/producto_repository.dart';
+import 'providers/catalogo_provider.dart';
+import 'providers/pedido_provider.dart';
 
-void main() {
-  runApp(const NexoShopApp());
-}
+/// Punto de entrada: construye las dependencias (inyeccion manual) y las
+/// expone a la UI mediante Provider. Ninguna pantalla crea sus propias
+/// dependencias, lo que mantiene la UI desacoplada de datos y servicios.
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
 
-class NexoShopApp extends StatelessWidget {
-  const NexoShopApp({super.key});
+  // Capa de datos
+  final prefs = await SharedPreferences.getInstance();
+  final local = LocalDataSource(prefs);
+  final remoto = RemoteDataSource(ApiClient());
+  final productoRepo = ProductoRepository(remoto: remoto, local: local);
+  final pedidoRepo = PedidoRepository(remoto: remoto, local: local);
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: AppStrings.appName,
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
-      home: const SplashScreen(),
-    );
-  }
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => CatalogoProvider(repositorio: productoRepo),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => PedidoProvider(repositorio: pedidoRepo),
+        ),
+      ],
+      child: const NexoShopApp(),
+    ),
+  );
 }
