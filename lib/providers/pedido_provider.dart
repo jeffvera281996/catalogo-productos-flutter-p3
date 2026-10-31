@@ -7,6 +7,7 @@ import '../data/models/pedido.dart';
 import '../data/models/producto.dart';
 import '../data/repositories/pedido_repository.dart';
 import '../services/connectivity_service.dart';
+import '../services/notification_service.dart';
 
 /// Resultado de crear un pedido, para que la UI muestre el mensaje correcto.
 enum ResultadoPedido { enviado, enCola }
@@ -15,8 +16,10 @@ class PedidoProvider extends ChangeNotifier {
   PedidoProvider({
     required PedidoRepository repositorio,
     required ConnectivityService conectividad,
+    required NotificationService notificaciones,
   }) : _repositorio = repositorio,
-       _conectividad = conectividad {
+       _conectividad = conectividad,
+       _notificaciones = notificaciones {
     _pedidos = _repositorio.obtenerTodos();
     // Cola offline: al volver internet se envian los pedidos pendientes.
     _suscripcion = _conectividad.cambios.listen((conectado) {
@@ -26,6 +29,7 @@ class PedidoProvider extends ChangeNotifier {
 
   final PedidoRepository _repositorio;
   final ConnectivityService _conectividad;
+  final NotificationService _notificaciones;
   late final StreamSubscription<bool> _suscripcion;
 
   List<Pedido> _pedidos = [];
@@ -61,12 +65,17 @@ class PedidoProvider extends ChangeNotifier {
       await _repositorio.guardar(pedido);
 
       // 2) Sin conexion no se intenta la red (evita esperar el timeout).
-      if (!_conectividad.hayConexion) return ResultadoPedido.enCola;
+      if (!_conectividad.hayConexion) {
+        _notificaciones.pedidoEnCola(producto.nombre);
+        return ResultadoPedido.enCola;
+      }
 
       try {
         await _repositorio.enviar(pedido);
+        _notificaciones.pedidoConfirmado(producto.nombre, cantidad);
         return ResultadoPedido.enviado;
       } on AppException {
+        _notificaciones.pedidoEnCola(producto.nombre);
         return ResultadoPedido.enCola;
       }
     } finally {
@@ -102,6 +111,7 @@ class PedidoProvider extends ChangeNotifier {
       }
     }
     _recargar();
+    if (enviados > 0) await _notificaciones.pedidosSincronizados(enviados);
     return enviados;
   }
 

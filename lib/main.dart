@@ -13,6 +13,7 @@ import 'providers/connectivity_provider.dart';
 import 'providers/pedido_provider.dart';
 import 'services/connectivity_service.dart';
 import 'services/image_service.dart';
+import 'services/notification_service.dart';
 import 'services/permission_service.dart';
 
 /// Punto de entrada: construye las dependencias (inyeccion manual) y las
@@ -30,16 +31,19 @@ Future<void> main() async {
 
   // Servicios nativos
   final conectividad = ConnectivityService();
-  await conectividad.iniciar();
+  final notificaciones = NotificationService();
+  // Se inicializan en paralelo para no alargar el arranque.
+  await Future.wait([conectividad.iniciar(), notificaciones.inicializar()]);
 
   runApp(
     MultiProvider(
       providers: [
         Provider<ConnectivityService>.value(value: conectividad),
+        Provider<NotificationService>.value(value: notificaciones),
         Provider<PermissionService>(create: (_) => PermissionService()),
         Provider<ImageService>(create: (_) => ImageService()),
         ChangeNotifierProvider(
-          create: (_) => ConnectivityProvider(conectividad),
+          create: (_) => ConnectivityProvider(conectividad, notificaciones),
         ),
         ChangeNotifierProvider(
           create: (_) => CatalogoProvider(
@@ -54,6 +58,7 @@ Future<void> main() async {
           create: (_) => PedidoProvider(
             repositorio: pedidoRepo,
             conectividad: conectividad,
+            notificaciones: notificaciones,
           )..sincronizarPendientes(),
         ),
       ],

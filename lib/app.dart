@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'core/constants/app_strings.dart';
 import 'core/theme/app_theme.dart';
+import 'services/notification_service.dart';
 import 'ui/screens/home_screen.dart';
 import 'ui/screens/pedidos_screen.dart';
 import 'ui/screens/splash_screen.dart';
@@ -18,8 +22,33 @@ abstract final class Rutas {
 /// widgets (por ejemplo, al tocar una notificacion).
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-class NexoShopApp extends StatelessWidget {
+class NexoShopApp extends StatefulWidget {
   const NexoShopApp({super.key});
+
+  @override
+  State<NexoShopApp> createState() => _NexoShopAppState();
+}
+
+class _NexoShopAppState extends State<NexoShopApp> {
+  StreamSubscription<String?>? _toques;
+
+  @override
+  void initState() {
+    super.initState();
+    // Tocar una notificacion con la app abierta o en segundo plano lleva a
+    // "Mis pedidos". El servicio no conoce la UI: solo emite el payload.
+    _toques = context.read<NotificationService>().toques.listen((payload) {
+      if (payload == NotificationService.payloadPedidos) {
+        navigatorKey.currentState?.pushNamed(Rutas.pedidos);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _toques?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
