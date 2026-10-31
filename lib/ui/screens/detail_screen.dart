@@ -1,9 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../data/models/producto.dart';
 import '../../providers/pedido_provider.dart';
+import '../widgets/foto_adjunta_field.dart';
 import '../widgets/producto_imagen.dart';
 
 // Pantalla 2: detalle del producto y formulario de pedido
@@ -20,6 +23,7 @@ class _DetailScreenState extends State<DetailScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nombreController = TextEditingController();
   final _cantidadController = TextEditingController(text: '1');
+  File? _foto;
 
   @override
   void dispose() {
@@ -36,6 +40,7 @@ class _DetailScreenState extends State<DetailScreen> {
       producto: widget.producto,
       cliente: _nombreController.text.trim(),
       cantidad: int.parse(_cantidadController.text),
+      fotoPath: _foto?.path,
     );
     if (!mounted) return;
 
@@ -129,6 +134,8 @@ class _DetailScreenState extends State<DetailScreen> {
                   return null;
                 },
               ),
+              const SizedBox(height: 12),
+              FotoAdjuntaField(alCambiar: (f) => _foto = f),
               const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
