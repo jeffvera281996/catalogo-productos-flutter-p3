@@ -2,5 +2,5 @@
 abstract final class AppStrings {
   static const String appName = 'NexoShop';
   static const String slogan = 'Tu tienda conectada, incluso sin conexion';
-  static const String version = '1.1.0';
+  static const String version = '2.0.0';
 }

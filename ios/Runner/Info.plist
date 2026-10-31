@@ -24,6 +24,10 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>NSCameraUsageDescription</key>
+	<string>NexoShop usa la camara para que adjuntes una foto de referencia a tu pedido.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>NexoShop accede a tus fotos solo para adjuntar la imagen que elijas a tu pedido.</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>

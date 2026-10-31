@@ -1,23 +1,68 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import 'core/constants/app_strings.dart';
-import 'core/theme/app_theme.dart';
-import 'screens/splash_screen.dart';
+import 'app.dart';
+import 'data/datasources/api_client.dart';
+import 'data/datasources/local_datasource.dart';
+import 'data/datasources/remote_datasource.dart';
+import 'data/repositories/pedido_repository.dart';
+import 'data/repositories/producto_repository.dart';
+import 'providers/catalogo_provider.dart';
+import 'providers/connectivity_provider.dart';
+import 'providers/pedido_provider.dart';
+import 'services/connectivity_service.dart';
+import 'services/image_service.dart';
+import 'services/notification_service.dart';
+import 'services/permission_service.dart';
 
-void main() {
-  runApp(const NexoShopApp());
-}
+/// Punto de entrada: construye las dependencias (inyeccion manual) y las
+/// expone a la UI mediante Provider. Ninguna pantalla crea sus propias
+/// dependencias, lo que mantiene la UI desacoplada de datos y servicios.
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
 
-class NexoShopApp extends StatelessWidget {
-  const NexoShopApp({super.key});
+  // Capa de datos
+  final prefs = await SharedPreferences.getInstance();
+  final local = LocalDataSource(prefs);
+  final remoto = RemoteDataSource(ApiClient());
+  final productoRepo = ProductoRepository(remoto: remoto, local: local);
+  final pedidoRepo = PedidoRepository(remoto: remoto, local: local);
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: AppStrings.appName,
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
-      home: const SplashScreen(),
-    );
-  }
+  // Servicios nativos
+  final conectividad = ConnectivityService();
+  final notificaciones = NotificationService();
+  // Se inicializan en paralelo para no alargar el arranque.
+  await Future.wait([conectividad.iniciar(), notificaciones.inicializar()]);
+
+  runApp(
+    MultiProvider(
+      providers: [
+        Provider<ConnectivityService>.value(value: conectividad),
+        Provider<NotificationService>.value(value: notificaciones),
+        Provider<PermissionService>(create: (_) => PermissionService()),
+        Provider<ImageService>(create: (_) => ImageService()),
+        ChangeNotifierProvider(
+          create: (_) => ConnectivityProvider(conectividad, notificaciones),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => CatalogoProvider(
+            repositorio: productoRepo,
+            conectividad: conectividad,
+          ),
+        ),
+        ChangeNotifierProvider(
+          // lazy: false -> se crea al arrancar para escuchar la red desde el
+          // inicio y sincronizar pedidos pendientes de sesiones anteriores.
+          lazy: false,
+          create: (_) => PedidoProvider(
+            repositorio: pedidoRepo,
+            conectividad: conectividad,
+            notificaciones: notificaciones,
+          )..sincronizarPendientes(),
+        ),
+      ],
+      child: const NexoShopApp(),
+    ),
+  );
 }

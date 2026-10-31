@@ -1,0 +1,21 @@
+sequenceDiagram
+  autonumber
+  actor U as Usuario
+  participant D as DetailScreen
+  participant P as PedidoProvider
+  participant R as PedidoRepository
+  participant C as ConnectivityService
+  participant N as NotificationService
+  U->>D: Enviar pedido (sin internet)
+  D->>P: crearPedido()
+  P->>R: guardar(pedido pendiente)
+  P->>C: hayConexion?
+  C-->>P: false
+  P->>N: pedidoEnCola()
+  P-->>D: ResultadoPedido.enCola
+  Note over C: Vuelve la red: onConnectivityChanged<br/>debounce 600 ms + verificacion DNS
+  C-->>P: cambios emite true
+  P->>P: sincronizarPendientes()<br/>(un solo Future compartido)
+  P->>R: enviar(pedido)
+  R-->>P: sincronizado
+  P->>N: pedidosSincronizados(n)

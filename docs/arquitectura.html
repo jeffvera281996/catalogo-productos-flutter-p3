@@ -1,0 +1,52 @@
+<html><head><style>
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#fff;color:#1B1530}
+.w{width:1400px;padding:28px 36px;box-sizing:border-box}
+h1{font-size:26px;margin:0 0 4px;color:#2A1B6E}.sub{color:#6B6588;margin-bottom:18px;font-size:15px}
+.layer{border-radius:16px;padding:14px 18px 18px;margin:0 0 10px;border:2px solid}
+.lt{font-weight:700;font-size:16px;margin-bottom:10px;display:flex;justify-content:space-between}
+.lt span{font-weight:400;font-size:13px;color:#6B6588;font-family:monospace}
+.row{display:flex;gap:14px}
+.b{flex:1;background:#fff;border-radius:10px;padding:10px 12px;border:1.5px solid;font-size:14px;line-height:1.35}
+.b b{display:block;font-size:15px;margin-bottom:3px}
+.ui{background:#EDE9FF;border-color:#4A2FBD}.ui .b{border-color:#4A2FBD}
+.st{background:#FFEDE8;border-color:#FF6B4A}.st .b{border-color:#FF6B4A}
+.sv{background:#E3F6EF;border-color:#1FAA7A}.sv .b{border-color:#1FAA7A}
+.da{background:#FFF4DE;border-color:#F5A524}.da .b{border-color:#F5A524}
+.pl{background:#F0F0F5;border-color:#6B6588}.pl .b{border-color:#6B6588}
+.arr{display:flex;justify-content:center;gap:60px;font-size:13px;color:#4A2FBD;margin:2px 0 10px}
+.arr div{display:flex;align-items:center;gap:8px}.arr i{font-style:normal;font-size:22px;line-height:1}
+.note{display:flex;gap:14px;margin-top:6px}.note div{flex:1;font-size:13px;background:#F6F4FF;border-radius:10px;padding:10px 12px;border-left:4px solid #4A2FBD}
+</style></head><body><div class="w">
+<h1>NexoShop — Arquitectura por capas</h1><div class="sub">Flujo de dependencias de arriba hacia abajo: cada capa solo conoce a la inmediatamente inferior. Inyeccion de dependencias en main.dart con MultiProvider.</div>
+<div class="layer ui"><div class="lt">1. Presentacion (UI) <span>lib/ui/</span></div><div class="row">
+<div class="b"><b>SplashScreen</b>Carga inicial + permiso de notificaciones</div>
+<div class="b"><b>HomeScreen</b>Catalogo, pull-to-refresh, origen de datos</div>
+<div class="b"><b>DetailScreen</b>Formulario de pedido + FotoAdjuntaField</div>
+<div class="b"><b>PedidosScreen</b>Historial y estado (pendiente / enviado)</div>
+<div class="b"><b>OfflineBanner</b>Global en MaterialApp.builder</div></div></div>
+<div class="arr"><div><i>↓</i>context.watch / select (reconstruye)</div><div><i>↓</i>context.read (acciones)</div></div>
+<div class="layer st"><div class="lt">2. Gestion de estado — Provider / ChangeNotifier <span>lib/providers/</span></div><div class="row">
+<div class="b"><b>ConnectivityProvider</b>EstadoRed + WidgetsBindingObserver (ciclo de vida)</div>
+<div class="b"><b>CatalogoProvider</b>Productos, origen (remoto / cache / semilla), anti-recarga duplicada</div>
+<div class="b"><b>PedidoProvider</b>Crear pedido, cola offline, sincronizacion con Future unico</div></div></div>
+<div class="arr"><div><i>↓</i>llamadas a metodos</div><div><i>↑</i>Stream&lt;bool&gt; cambios de red</div></div>
+<div class="row" style="gap:10px">
+<div class="layer sv" style="flex:1.25"><div class="lt">3a. Servicios nativos <span>lib/services/</span></div><div class="row" style="flex-wrap:wrap">
+<div class="b" style="flex:1 1 40%"><b>ConnectivityService</b>Stream, debounce 600 ms, verificacion DNS</div>
+<div class="b" style="flex:1 1 40%"><b>PermissionService</b>Runtime permissions → enum propio</div>
+<div class="b" style="flex:1 1 40%"><b>ImageService</b>Captura → recorte → JPEG 70 %</div>
+<div class="b" style="flex:1 1 40%"><b>NotificationService</b>Canales Android, permiso, toques</div></div></div>
+<div class="layer da" style="flex:1"><div class="lt">3b. Datos <span>lib/data/</span></div><div class="row" style="flex-wrap:wrap">
+<div class="b" style="flex:1 1 40%"><b>ProductoRepository</b>Network-first → cache → semilla</div>
+<div class="b" style="flex:1 1 40%"><b>PedidoRepository</b>Persistir primero, enviar despues</div>
+<div class="b" style="flex:1 1 40%"><b>RemoteDataSource</b>ApiClient http, timeout 8 s</div>
+<div class="b" style="flex:1 1 40%"><b>LocalDataSource</b>shared_preferences (JSON)</div></div></div></div>
+<div class="arr"><div><i>↓</i>plugins (MethodChannel / Pigeon)</div><div><i>↓</i>HTTPS</div></div>
+<div class="layer pl"><div class="lt">4. Plataforma <span>Android / iOS</span></div><div class="row">
+<div class="b"><b>connectivity_plus</b>ConnectivityManager / NWPathMonitor</div>
+<div class="b"><b>permission_handler</b>Dialogos de permiso del sistema</div>
+<div class="b"><b>image_picker + image_cropper</b>Camara, Photo Picker / PHPicker, uCrop</div>
+<div class="b"><b>flutter_local_notifications</b>NotificationManager / UNUserNotificationCenter</div>
+<div class="b"><b>API REST</b>dummyjson.com</div></div></div>
+<div class="note"><div><b>Desacoplamiento:</b> ninguna pantalla usa directamente red, permisos, camara ni notificaciones; lo hacen los servicios. Cambiar un plugin no toca la UI.</div><div><b>Transversal:</b> lib/core/ (tema, colores, textos de marca y excepciones de dominio).</div></div>
+</div></body></html>
