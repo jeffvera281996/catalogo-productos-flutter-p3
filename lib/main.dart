@@ -12,6 +12,8 @@ import 'providers/catalogo_provider.dart';
 import 'providers/connectivity_provider.dart';
 import 'providers/pedido_provider.dart';
 import 'services/connectivity_service.dart';
+import 'services/image_service.dart';
+import 'services/permission_service.dart';
 
 /// Punto de entrada: construye las dependencias (inyeccion manual) y las
 /// expone a la UI mediante Provider. Ninguna pantalla crea sus propias
@@ -34,6 +36,8 @@ Future<void> main() async {
     MultiProvider(
       providers: [
         Provider<ConnectivityService>.value(value: conectividad),
+        Provider<PermissionService>(create: (_) => PermissionService()),
+        Provider<ImageService>(create: (_) => ImageService()),
         ChangeNotifierProvider(
           create: (_) => ConnectivityProvider(conectividad),
         ),
