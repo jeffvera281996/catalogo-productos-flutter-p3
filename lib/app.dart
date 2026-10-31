@@ -5,6 +5,7 @@ import 'core/theme/app_theme.dart';
 import 'ui/screens/home_screen.dart';
 import 'ui/screens/pedidos_screen.dart';
 import 'ui/screens/splash_screen.dart';
+import 'ui/widgets/offline_banner.dart';
 
 /// Rutas con nombre de la aplicacion.
 abstract final class Rutas {
@@ -27,6 +28,8 @@ class NexoShopApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       navigatorKey: navigatorKey,
+      // Banner de conectividad global, por encima de todas las rutas.
+      builder: (context, child) => OfflineBanner(child: child!),
       initialRoute: Rutas.splash,
       routes: {
         Rutas.splash: (_) => const SplashScreen(),

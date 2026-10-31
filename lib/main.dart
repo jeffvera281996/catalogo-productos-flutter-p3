@@ -9,7 +9,9 @@ import 'data/datasources/remote_datasource.dart';
 import 'data/repositories/pedido_repository.dart';
 import 'data/repositories/producto_repository.dart';
 import 'providers/catalogo_provider.dart';
+import 'providers/connectivity_provider.dart';
 import 'providers/pedido_provider.dart';
+import 'services/connectivity_service.dart';
 
 /// Punto de entrada: construye las dependencias (inyeccion manual) y las
 /// expone a la UI mediante Provider. Ninguna pantalla crea sus propias
@@ -24,14 +26,31 @@ Future<void> main() async {
   final productoRepo = ProductoRepository(remoto: remoto, local: local);
   final pedidoRepo = PedidoRepository(remoto: remoto, local: local);
 
+  // Servicios nativos
+  final conectividad = ConnectivityService();
+  await conectividad.iniciar();
+
   runApp(
     MultiProvider(
       providers: [
+        Provider<ConnectivityService>.value(value: conectividad),
         ChangeNotifierProvider(
-          create: (_) => CatalogoProvider(repositorio: productoRepo),
+          create: (_) => ConnectivityProvider(conectividad),
         ),
         ChangeNotifierProvider(
-          create: (_) => PedidoProvider(repositorio: pedidoRepo),
+          create: (_) => CatalogoProvider(
+            repositorio: productoRepo,
+            conectividad: conectividad,
+          ),
+        ),
+        ChangeNotifierProvider(
+          // lazy: false -> se crea al arrancar para escuchar la red desde el
+          // inicio y sincronizar pedidos pendientes de sesiones anteriores.
+          lazy: false,
+          create: (_) => PedidoProvider(
+            repositorio: pedidoRepo,
+            conectividad: conectividad,
+          )..sincronizarPendientes(),
         ),
       ],
       child: const NexoShopApp(),
