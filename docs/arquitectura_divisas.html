@@ -1,0 +1,34 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+*{box-sizing:border-box;margin:0}body{width:1400px;background:#fff;font-family:"DejaVu Sans",sans-serif;padding:36px 40px;color:#1B1530}
+.row{display:flex;align-items:center;gap:0}
+.box{border-radius:16px;padding:14px 16px;width:220px;height:130px;display:flex;flex-direction:column;justify-content:center;text-align:center;border:2px solid #4A2FBD;background:#F6F4FF}
+.box b{display:block;font-size:18px;color:#2A1B6E;margin-bottom:6px}.box span{font-size:14px;color:#6B6588}
+.layer{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#FF6B4A;font-weight:bold;margin-bottom:6px}
+.arrow{flex:1;text-align:center;color:#4A2FBD;font-size:13px;position:relative;height:40px}
+.arrow:before{content:"";position:absolute;left:6px;right:14px;top:26px;border-top:2.5px solid #4A2FBD}
+.arrow:after{content:"";position:absolute;right:4px;top:20px;border-left:12px solid #4A2FBD;border-top:7px solid transparent;border-bottom:7px solid transparent}
+.api{background:linear-gradient(135deg,#6A4CFF,#2A1B6E);color:#fff;border:none}.api b{color:#fff}.api span{color:#E2DCFF}
+.states{margin-top:34px;display:flex;gap:22px;align-items:stretch}
+.st{flex:1;border-radius:14px;padding:16px 18px;border:2px solid}
+.st h4{font-size:17px;margin-bottom:6px}.st p{font-size:14px;color:#3a3452;line-height:1.4}
+.ld{border-color:#F5A524;background:#FFF8EA}.ld h4{color:#B87500}
+.ok{border-color:#1FAA7A;background:#EAF8F2}.ok h4{color:#137A57}
+.er{border-color:#E5484D;background:#FDEEEE}.er h4{color:#B4282D}
+.title{font-size:15px;color:#6B6588;margin-top:26px;margin-bottom:-14px}
+</style></head><body>
+<div class="row">
+ <div><div class="layer">UI</div><div class="box"><b>DivisasScreen</b><span>TasaCard · esqueletos<br>RefreshIndicator</span></div></div>
+ <div class="arrow">context.watch</div>
+ <div><div class="layer">Estado</div><div class="box"><b>DivisasProvider</b><span>ChangeNotifier<br>estado sealed</span></div></div>
+ <div class="arrow">obtenerTasas()</div>
+ <div><div class="layer">Datos</div><div class="box"><b>Repository + DataSource</b><span>fromJson / toJson<br>TasasCambio</span></div></div>
+ <div class="arrow">GET (http)</div>
+ <div><div class="layer">Red</div><div class="box api"><b>Frankfurter API</b><span>/v1/latest?base=USD<br>JSON · sin API key</span></div></div>
+</div>
+<div class="title">notifyListeners() publica uno de estos tres estados; la pantalla los cubre con un switch exhaustivo:</div>
+<div class="states">
+ <div class="st ld"><h4>DivisasCargando</h4><p>Primera carga o cambio de moneda base. Se muestran tarjetas esqueleto animadas.</p></div>
+ <div class="st ok"><h4>DivisasExito(datos)</h4><p>HTTP 2xx y JSON válido. Lista de monedas con monto convertido y tasa.</p></div>
+ <div class="st er"><h4>DivisasError(mensaje, sinConexion)</h4><p>Sin red, timeout, HTTP 4xx/5xx o JSON inválido. Mensaje claro, Reintentar y pull-to-refresh.</p></div>
+</div>
+</body></html>
