@@ -24,6 +24,11 @@ class HomeScreen extends StatelessWidget {
         title: const Text(AppStrings.appName),
         actions: [
           IconButton(
+            tooltip: 'Divisas',
+            onPressed: () => Navigator.pushNamed(context, Rutas.divisas),
+            icon: const Icon(Icons.currency_exchange),
+          ),
+          IconButton(
             tooltip: 'Mis pedidos',
             onPressed: () => Navigator.pushNamed(context, Rutas.pedidos),
             icon: Badge(
