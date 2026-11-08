@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'core/constants/app_strings.dart';
 import 'core/theme/app_theme.dart';
 import 'services/notification_service.dart';
+import 'ui/screens/divisas_screen.dart';
 import 'ui/screens/home_screen.dart';
 import 'ui/screens/pedidos_screen.dart';
 import 'ui/screens/splash_screen.dart';
@@ -16,6 +17,7 @@ abstract final class Rutas {
   static const splash = '/';
   static const home = '/home';
   static const pedidos = '/pedidos';
+  static const divisas = '/divisas';
 }
 
 /// Llave global del Navigator: permite navegar desde fuera del arbol de
@@ -64,6 +66,7 @@ class _NexoShopAppState extends State<NexoShopApp> {
         Rutas.splash: (_) => const SplashScreen(),
         Rutas.home: (_) => const HomeScreen(),
         Rutas.pedidos: (_) => const PedidosScreen(),
+        Rutas.divisas: (_) => const DivisasScreen(),
       },
     );
   }
