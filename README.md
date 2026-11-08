@@ -176,8 +176,8 @@ test/                             # Pruebas unitarias
 ## Instalación y ejecución
 
 ```bash
-git clone https://github.com/<tu-usuario>/nexoshop.git
-cd nexoshop
+git clone https://github.com/jeffvera281996/catalogo-productos-flutter-p3.git
+cd catalogo-productos-flutter-p3
 flutter pub get
 flutter run                 # en el emulador o dispositivo conectado
 flutter test                # pruebas unitarias
