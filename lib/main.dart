@@ -4,12 +4,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app.dart';
 import 'data/datasources/api_client.dart';
+import 'data/datasources/divisas_remote_datasource.dart';
 import 'data/datasources/local_datasource.dart';
 import 'data/datasources/remote_datasource.dart';
+import 'data/repositories/divisas_repository.dart';
 import 'data/repositories/pedido_repository.dart';
 import 'data/repositories/producto_repository.dart';
 import 'providers/catalogo_provider.dart';
 import 'providers/connectivity_provider.dart';
+import 'providers/divisas_provider.dart';
 import 'providers/pedido_provider.dart';
 import 'services/connectivity_service.dart';
 import 'services/image_service.dart';
@@ -28,6 +31,13 @@ Future<void> main() async {
   final remoto = RemoteDataSource(ApiClient());
   final productoRepo = ProductoRepository(remoto: remoto, local: local);
   final pedidoRepo = PedidoRepository(remoto: remoto, local: local);
+  // Parte 3: segunda API publica (tasas de cambio). Usa su propio ApiClient
+  // porque tiene otra URL base, pero comparte timeout y manejo de errores.
+  final divisasRepo = DivisasRepository(
+    DivisasRemoteDataSource(
+      ApiClient(baseUrl: DivisasRemoteDataSource.baseUrl),
+    ),
+  );
 
   // Servicios nativos
   final conectividad = ConnectivityService();
@@ -50,6 +60,9 @@ Future<void> main() async {
             repositorio: productoRepo,
             conectividad: conectividad,
           ),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => DivisasProvider(divisasRepo),
         ),
         ChangeNotifierProvider(
           // lazy: false -> se crea al arrancar para escuchar la red desde el

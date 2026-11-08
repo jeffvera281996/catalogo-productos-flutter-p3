@@ -4,24 +4,29 @@
 
 <h1 align="center">NexoShop</h1>
 <p align="center"><b>Tu tienda conectada, incluso sin conexión.</b><br/>
-Catálogo móvil de productos en Flutter con modo offline, cámara y notificaciones locales.</p>
+Catálogo móvil de productos en Flutter con modo offline, cámara, notificaciones locales y tasas de cambio en tiempo real.</p>
 
 <p align="center">
   <img alt="Flutter" src="https://img.shields.io/badge/Flutter-3.x-4A2FBD?logo=flutter&logoColor=white"/>
   <img alt="Dart" src="https://img.shields.io/badge/Dart-3.12-4A2FBD?logo=dart&logoColor=white"/>
   <img alt="Estado" src="https://img.shields.io/badge/estado-Provider-FF6B4A"/>
   <img alt="Plataformas" src="https://img.shields.io/badge/plataformas-Android%20%7C%20iOS-1FAA7A"/>
-  <img alt="Versión" src="https://img.shields.io/badge/versión-2.0.0-2A1B6E"/>
+  <img alt="Versión" src="https://img.shields.io/badge/versión-3.0.0-2A1B6E"/>
 </p>
 
 ---
 
+> **Parte 3: Integración de APIs REST públicas.** Se agregó el módulo **Divisas**, que consume la API pública
+> [Frankfurter](https://frankfurter.dev) y maneja los estados *Cargando*, *Éxito* y *Error* con Provider.
+> Ver [API consumida (Parte 3)](#api-consumida-parte-3).
+>
 > **Actividad Integradora 2: Reingeniería, servicios nativos y auditoría de código.**
 > Este proyecto **es la evolución de la app de la Actividad Integradora 1** ("Mi Catálogo").
 > El historial de commits empieza con el proyecto original (`5db3fc7`) para que se pueda auditar cada cambio.
 
 ## Tabla de contenido
 
+1. [API consumida (Parte 3)](#api-consumida-parte-3)
 1. [Qué hay de nuevo](#qué-hay-de-nuevo-v1--v2)
 2. [Funcionalidades](#funcionalidades)
 3. [Arquitectura](#arquitectura)
@@ -33,6 +38,51 @@ Catálogo móvil de productos en Flutter con modo offline, cámara y notificacio
 9. [Flujo de trabajo con Git](#flujo-de-trabajo-con-git)
 10. [Solución de problemas](#solución-de-problemas)
 11. [Autor](#autor)
+
+## API consumida (Parte 3)
+
+| | |
+|---|---|
+| **API** | [Frankfurter](https://frankfurter.dev): tasas de cambio de referencia del Banco Central Europeo |
+| **Endpoint** | `GET https://api.frankfurter.dev/v1/latest?base=USD` (también `EUR`, `GBP`, `MXN`) |
+| **Autenticación** | Ninguna. Es gratuita, no usa API key ni sesión |
+| **Paquete HTTP** | [`http`](https://pub.dev/packages/http), a través del `ApiClient` del proyecto (timeout de 8 s y errores de dominio) |
+| **Gestión de estado** | `Provider` + `ChangeNotifier` con estados `sealed`: `DivisasCargando`, `DivisasExito`, `DivisasError` |
+
+**Por qué esta API.** NexoShop vende en dólares, pero sus clientes pueden pensar en otra moneda. La pantalla **Divisas**
+convierte cualquier monto a 30 monedas con datos del día. Las tasas cambian a diario, así que es un buen caso de datos en tiempo real.
+
+Respuesta JSON de ejemplo:
+
+```json
+{
+  "amount": 1.0,
+  "base": "USD",
+  "date": "2026-11-06",
+  "rates": { "AUD": 1.52, "EUR": 0.8712, "JPY": 152.1, "MXN": 18.43 }
+}
+```
+
+`rates` es un mapa dinámico (la clave es el código ISO 4217). `TasasCambio.fromJson` lo convierte en una `List<TasaCambio>` tipada y ordenada (primero las monedas destacadas). `toJson` regresa al mismo formato.
+
+**Flujo de capas del módulo:**
+
+```
+DivisasScreen ──watch──▶ DivisasProvider ──▶ DivisasRepository ──▶ DivisasRemoteDataSource ──▶ ApiClient (http)
+      ▲                        │
+      └──── estado sealed ─────┘   Cargando · Exito(datos) · Error(mensaje, sinConexion)
+```
+
+**Cómo usarla en la app:** en el catálogo, toca el ícono de divisas (💱) del AppBar. Escribe un monto, elige la moneda base y **desliza hacia abajo** para actualizar.
+
+| Archivo | Rol |
+|---|---|
+| `lib/data/datasources/divisas_remote_datasource.dart` | Petición GET y traducción de errores de formato |
+| `lib/data/models/tasa_cambio.dart` | Modelos `TasasCambio` / `TasaCambio` con `fromJson` / `toJson` |
+| `lib/data/repositories/divisas_repository.dart` | Punto de acceso para la capa de estado (sin caché, a propósito) |
+| `lib/providers/divisas_provider.dart` | Estados de la petición y lógica de refresco |
+| `lib/ui/screens/divisas_screen.dart` | Pantalla con tarjetas, esqueletos de carga, vista de error y pull-to-refresh |
+| `test/divisas_test.dart` | Pruebas de mapeo JSON y de transiciones de estado con `MockClient` |
 
 ## Qué hay de nuevo (v1 → v2)
 
@@ -91,13 +141,14 @@ lib/
 ├── main.dart                     # Composición de dependencias + MultiProvider
 ├── app.dart                      # MaterialApp, rutas, banner global, toques de notificación
 ├── core/
-│   ├── constants/app_strings.dart
+│   ├── constants/app_strings.dart · monedas.dart
+│   ├── utils/formato.dart
 │   ├── errors/app_exceptions.dart
 │   └── theme/ app_colors.dart · app_theme.dart
 ├── data/
-│   ├── models/ producto.dart · pedido.dart
-│   ├── datasources/ api_client.dart · remote_datasource.dart · local_datasource.dart
-│   └── repositories/ producto_repository.dart · pedido_repository.dart
+│   ├── models/ producto.dart · pedido.dart · tasa_cambio.dart
+│   ├── datasources/ api_client.dart · remote_datasource.dart · local_datasource.dart · divisas_remote_datasource.dart
+│   └── repositories/ producto_repository.dart · pedido_repository.dart · divisas_repository.dart
 ├── services/
 │   ├── connectivity_service.dart
 │   ├── permission_service.dart
@@ -106,10 +157,11 @@ lib/
 ├── providers/
 │   ├── connectivity_provider.dart
 │   ├── catalogo_provider.dart
-│   └── pedido_provider.dart
+│   ├── pedido_provider.dart
+│   └── divisas_provider.dart
 └── ui/
-    ├── screens/ splash · home · detail · pedidos
-    └── widgets/ offline_banner · foto_adjunta_field · producto_card · producto_imagen · origen_datos_chip
+    ├── screens/ splash · home · detail · pedidos · divisas
+    └── widgets/ offline_banner · foto_adjunta_field · producto_card · producto_imagen · origen_datos_chip · tasa_card
 assets/branding/                  # Ícono fuente (SVG), PNG 1024 y logo del splash
 docs/                             # Diagramas e informe técnico (PDF)
 test/                             # Pruebas unitarias
@@ -133,6 +185,8 @@ flutter build apk --release # APK de distribución
 ```
 
 > La primera vez que se ejecuta, la app descarga el catálogo desde `https://dummyjson.com` (API pública de pruebas). Si no hay internet, muestra la caché o el catálogo semilla.
+>
+> La pantalla **Divisas** consulta `https://api.frankfurter.dev/v1/latest` cada vez que se abre o se desliza hacia abajo. No necesita ninguna configuración ni API key.
 
 ## Permisos nativos
 
@@ -157,6 +211,11 @@ flutter build apk --release # APK de distribución
 | Denegado permanente | Rechazar dos veces (Android) | Diálogo "Permiso bloqueado" → "Abrir ajustes" |
 | Notificación desde segundo plano | Enviar la app al fondo y cortar la red | Notificación "Sin conexión" en el canal *Estado de conexión* |
 | Toque en notificación | Tocar cualquier notificación | Se abre *Mis pedidos* |
+| **Divisas: cargando** | Abrir Divisas (para verlo mejor: emulador → *Extended controls → Cellular → Network type: GSM*) | Tarjetas esqueleto parpadeando |
+| **Divisas: éxito** | Abrir Divisas con internet | Lista de monedas con bandera, monto convertido y "Tasas del BCE al dd/mm/aaaa" |
+| **Divisas: pull-to-refresh** | Deslizar la lista hacia abajo | Indicador circular; la lista sigue visible y se actualiza |
+| **Divisas: error de red** | Activar modo avión y tocar *Actualizar* o cambiar la moneda base | Ícono Wi-Fi tachado, "No pudimos conectarnos" y botón *Reintentar* |
+| **Divisas: recuperación** | Quitar el modo avión y tocar *Reintentar* | Vuelve a la lista con datos |
 
 > En el emulador de Android la cámara trasera es una escena virtual; se configura en *AVD Manager → Advanced → Camera*.
 
@@ -165,9 +224,11 @@ flutter build apk --release # APK de distribución
 Se usa un modelo **Git Flow simplificado**:
 
 ```
-main ──●──●──●───────────────────────────────────────●  (v1.1.0 rebranding · v2.0.0 release)
+main ──●──●──●───────────────────────────────────────●──────────────●  (v1.1.0 · v2.0.0 · v3.0.0)
         \                                           /
-develop  ●────●──────●──────●──────●──────●────────●
+develop  ●────●──────●──────●──────●──────●────────●──────●───────●
+                                                           \    /
+                                              feature/api-integration (Parte 3)
                \    / \    / \    / \    /
 feature/arquitectura-capas · feature/conectividad · feature/camara-permisos · feature/notificaciones
 ```
@@ -180,6 +241,7 @@ feature/arquitectura-capas · feature/conectividad · feature/camara-permisos ·
 | `feature/conectividad` | Servicio de red reactivo, banner y cola offline |
 | `feature/camara-permisos` | Cámara, galería, permisos, recorte y compresión |
 | `feature/notificaciones` | Notificaciones locales y canales |
+| `feature/api-integration` | **Parte 3:** consumo de la API Frankfurter, estados Cargando/Éxito/Error y pantalla Divisas (tag `v3.0.0`) |
 
 Los commits siguen **Conventional Commits** (`feat`, `refactor`, `test`, `docs`, `chore`) con alcance (`branding`, `red`, `camara`...). Las ramas se integran con `--no-ff` para conservar la trazabilidad.
 
@@ -201,4 +263,4 @@ git log --oneline --graph --all   # ver el historial completo
 
 ## Autor
 
-**Jefferson Ricardo Vera Macas**. Desarrollo de Aplicaciones Móviles, Actividad Integradora 2.
+**Jefferson Ricardo Vera Macas**. Desarrollo de Aplicaciones Móviles, Actividad Integradora 2 y Parte 3 (integración de APIs REST).
